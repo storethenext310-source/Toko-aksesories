@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Toko Aksesoris">
+    <meta name="description" content="Aplikasi inventaris, stok, kasir, penjualan, supplier, dan omset toko aksesoris.">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <title>Toko Aksesoris — Inventaris & Kasir</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        html { scroll-behavior:smooth; }
+        body { min-height:100vh; padding-bottom:env(safe-area-inset-bottom); }
+        button, input, select, textarea { touch-action:manipulation; }
+        @media (max-width: 640px) {
+            .mobile-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+            table { min-width:760px; }
+        }
+        .app-logo {
+            width:42px;height:42px;border-radius:12px;
+            display:grid;place-items:center;background:#4338ca;
+            box-shadow:0 6px 18px rgba(67,56,202,.25);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+<header class="bg-indigo-600 text-white shadow-md">
+    <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <h1 class="text-xl font-bold flex items-center gap-2">
+            <div class="app-logo" aria-label="Logo Toko Aksesoris">
+                <img src="./logo.svg" alt="" width="27" height="27">
+            </div>
+            <span>Toko Aksesoris</span>
+        </h1>
+        <div class="flex items-center gap-3">
+            <div id="headerCalendar" class="bg-indigo-500/80 text-white text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 shadow-inner">
+                <i class="fa-regular fa-calendar-days"></i> <span id="currentDateText">Memuat...</span>
+            </div>
+            <span class="text-xs bg-emerald-500 text-white px-3 py-1 rounded-full font-medium shadow-sm">Siap</span>
+        </div>
+    </div>
+</header>
+
+<div class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+    <div class="container mx-auto px-4 max-w-7xl flex gap-2 py-2.5 overflow-x-auto">
+        <button onclick="switchTab('inventory')" id="tabInventoryBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition bg-indigo-600 text-white shadow-sm whitespace-nowrap">
+            <i class="fa-solid fa-warehouse"></i> Inventaris Gudang
+        </button>
+        <button onclick="switchTab('sales')" id="tabSalesBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">
+            <i class="fa-solid fa-cash-register"></i> Kasir & Penjualan
+        </button>
+    </div>
+</div>
+
+<main class="container mx-auto px-4 py-6 max-w-7xl">
+
+<div id="sectionInventory" class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div><p class="text-xs text-slate-500 font-medium">Total Jenis Barang</p><h3 id="statTotalItem" class="text-xl font-bold text-slate-800">0</h3></div>
+            <div class="bg-indigo-50 text-indigo-600 p-3 rounded-lg"><i class="fa-solid fa-boxes-stacked"></i></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div><p class="text-xs text-slate-500 font-medium">Total Stok Barang</p><h3 id="statTotalStock" class="text-xl font-bold text-slate-800">0</h3></div>
+            <div class="bg-emerald-50 text-emerald-600 p-3 rounded-lg"><i class="fa-solid fa-cubes"></i></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div><p class="text-xs text-slate-500 font-medium">Total Nilai Modal</p><h3 id="statTotalModal" class="text-xl font-bold text-slate-800">Rp 0</h3></div>
+            <div class="bg-amber-50 text-amber-600 p-3 rounded-lg"><i class="fa-solid fa-wallet"></i></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div><p class="text-xs text-slate-500 font-medium">Potensi Keuntungan Bersih</p><h3 id="statTotalProfit" class="text-xl font-bold text-emerald-600">Rp 0</h3></div>
+            <div class="bg-sky-50 text-sky-600 p-3 rounded-lg"><i class="fa-solid fa-chart-line"></i></div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 lg:col-span-1">
+            <h2 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-circle-plus text-indigo-600"></i> Tambah / Edit Barang
+            </h2>
+            <form id="itemForm" class="space-y-3">
+                <input type="hidden" id="editIndex" value="">
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Barang</label><input type="text" id="namaBarang" required placeholder="Contoh: Gelang Titanium Anti Karat" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label><select id="kategori" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="Gelang">Gelang</option><option value="Cincin">Cincin</option><option value="Kalung">Kalung</option><option value="Anting">Anting</option><option value="Bando / Jepit">Bando / Jepit</option><option value="Lainnya">Lainnya</option>
+                </select></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Stok Awal</label><input type="number" id="stok" min="0" required placeholder="0" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Modal per Pcs (Rp)</label><input type="number" id="modal" min="0" required placeholder="0" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                </div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Harga Jual per Pcs (Rp)</label><input type="number" id="hargaJual" min="0" required placeholder="0" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Komisi Marketplace (%)</label><input type="number" id="komisiMarketplace" min="0" max="100" step="0.1" value="0" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Modal Iklan / Pcs (Rp)</label><input type="number" id="modalIklan" min="0" value="0" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                </div>
+                <div class="pt-2 border-t border-slate-100"><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Supplier / Distributor</label><input type="text" id="namaSupplier" placeholder="Contoh: Toko Grosir Jaya Abadi" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Supplier</label><textarea id="alamatSupplier" rows="2" placeholder="Kota / Alamat lengkap supplier" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Telepon Supplier</label><input type="text" id="nomerSupplier" placeholder="08123456789" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Catatan</label><textarea id="catatan" rows="2" placeholder="Informasi tambahan..." class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea></div>
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="btnSimpan" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-2 px-4 rounded-lg transition shadow-sm">Simpan Barang</button>
+                    <button type="button" onclick="resetForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium text-sm py-2 px-4 rounded-lg transition">Batal</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 pb-2 border-b border-slate-100">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 shrink-0"><i class="fa-solid fa-warehouse text-indigo-600"></i> Data Gudang & Produk</h2>
+                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <button onclick="backupData()" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-3 py-2 rounded-lg transition flex items-center justify-center gap-1.5 border border-indigo-100"><i class="fa-solid fa-download"></i> Backup</button>
+                    <label class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-semibold px-3 py-2 rounded-lg transition flex items-center justify-center gap-1.5 border border-emerald-100 cursor-pointer"><i class="fa-solid fa-upload"></i> Restore<input type="file" id="restoreInput" class="hidden" onchange="restoreData(event)" accept=".json"></label>
+                    <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari barang / supplier..." class="w-full sm:w-56 text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div class="overflow-x-auto flex-1 mobile-scroll">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead><tr class="bg-slate-100 text-slate-600 uppercase tracking-wider">
+                        <th class="p-2.5 rounded-l-lg">Barang & Kategori</th><th class="p-2.5">Supplier & Kontak</th><th class="p-2.5 text-center">Stok</th><th class="p-2.5 text-right">Modal & Biaya Lain</th><th class="p-2.5 text-right">Bersih / Pcs</th><th class="p-2.5 text-center rounded-r-lg">Aksi</th>
+                    </tr></thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="sectionSales" class="space-y-6 hidden">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between"><div><p class="text-xs text-slate-500 font-medium">Omset Hari Ini</p><h3 id="omsetHarian" class="text-lg font-bold text-indigo-600">Rp 0</h3></div><div class="bg-indigo-50 text-indigo-600 p-3 rounded-lg"><i class="fa-solid fa-sun"></i></div></div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between"><div><p class="text-xs text-slate-500 font-medium">Omset 7 Hari</p><h3 id="omsetMingguan" class="text-lg font-bold text-sky-600">Rp 0</h3></div><div class="bg-sky-50 text-sky-600 p-3 rounded-lg"><i class="fa-solid fa-calendar-week"></i></div></div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between"><div><p class="text-xs text-slate-500 font-medium">Omset Bulan Ini</p><h3 id="omsetBulanan" class="text-lg font-bold text-emerald-600">Rp 0</h3></div><div class="bg-emerald-50 text-emerald-600 p-3 rounded-lg"><i class="fa-solid fa-calendar-days"></i></div></div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between"><div><p class="text-xs text-slate-500 font-medium">Omset Tahun Ini</p><h3 id="omsetTahunan" class="text-lg font-bold text-amber-600">Rp 0</h3></div><div class="bg-amber-50 text-amber-600 p-3 rounded-lg"><i class="fa-solid fa-calendar"></i></div></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 lg:col-span-1">
+            <h2 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-emerald-600"></i> Form Kasir</h2>
+            <form id="saleForm" class="space-y-3">
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Produk</label><select id="saleProductSelect" required onchange="updateSaleProductInfo()" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"><option value="">-- Pilih Produk Tersedia --</option></select></div>
+                <div class="bg-slate-50 p-3 rounded-lg text-xs space-y-1 text-slate-600 border border-slate-100"><p>Stok Tersedia: <span id="infoStokGudang" class="font-bold text-slate-800">-</span></p><p>Harga Satuan: <span id="infoHargaJual" class="font-bold text-slate-800">-</span></p></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Beli (Qty)</label><input type="number" id="saleQty" min="1" value="1" required oninput="calculateSubtotal()" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Total Pembayaran (Rp)</label><input type="text" id="saleSubtotal" readonly class="w-full text-sm px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg font-bold text-emerald-600" value="Rp 0"></div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm py-2 px-4 rounded-lg transition shadow-sm mt-2 flex items-center justify-center gap-2"><i class="fa-solid fa-check"></i> Proses Penjualan</button>
+            </form>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> Riwayat Transaksi Keluar</h2>
+                <button onclick="clearSalesHistory()" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 font-semibold px-2.5 py-1.5 rounded-lg transition"><i class="fa-solid fa-trash-can"></i> Reset Riwayat</button>
+            </div>
+            <div class="overflow-x-auto flex-1 mobile-scroll">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead><tr class="bg-slate-100 text-slate-600 uppercase tracking-wider">
+                        <th class="p-2.5 rounded-l-lg">Waktu / Tanggal</th><th class="p-2.5">Nama Barang</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Total Harga</th><th class="p-2.5 text-center rounded-r-lg">Aksi</th>
+                    </tr></thead>
+                    <tbody id="salesTableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+
+<div id="modalTambahStok" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl p-5 max-w-sm w-full shadow-lg">
+        <h3 class="text-base font-bold text-slate-800 mb-2">Tambah Stok Barang</h3><p id="stokModalInfo" class="text-xs text-slate-500 mb-3"></p><input type="hidden" id="stokIndex">
+        <div class="mb-4"><label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Stok yang Ditambahkan</label><input type="number" id="jumlahTambahStok" min="1" value="1" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+        <div class="flex gap-2"><button onclick="prosesTambahStok()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm py-2 rounded-lg">Konfirmasi</button><button onclick="tutupModalStok()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium text-sm py-2 px-4 rounded-lg">Batal</button></div>
+    </div>
+</div>
+
+<script>
+let inventory = JSON.parse(localStorage.getItem('inventory_aksesoris')) || [];
+let salesHistory = JSON.parse(localStorage.getItem('sales_history_aksesoris')) || [];
+const itemForm=document.getElementById('itemForm'), tableBody=document.getElementById('tableBody'), salesTableBody=document.getElementById('salesTableBody');
+
+function formatRupiah(angka){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(angka)||0);}
+function updateCalendarHeader(){const options={weekday:'long',year:'numeric',month:'long',day:'numeric'};document.getElementById('currentDateText').innerText=new Date().toLocaleDateString('id-ID',options);}
+function switchTab(tabName){
+ const secInv=document.getElementById('sectionInventory'),secSales=document.getElementById('sectionSales'),btnInv=document.getElementById('tabInventoryBtn'),btnSales=document.getElementById('tabSalesBtn');
+ if(tabName==='inventory'){secInv.classList.remove('hidden');secSales.classList.add('hidden');btnInv.className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition bg-indigo-600 text-white shadow-sm whitespace-nowrap";btnSales.className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap";renderTable();}
+ else{secInv.classList.add('hidden');secSales.classList.remove('hidden');btnSales.className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition bg-indigo-600 text-white shadow-sm whitespace-nowrap";btnInv.className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap";populateSaleProductDropdown();renderSalesSection();}
+}
+function saveToStorage(){localStorage.setItem('inventory_aksesoris',JSON.stringify(inventory));localStorage.setItem('sales_history_aksesoris',JSON.stringify(salesHistory));}
+function backupData(){
+ const data={version:1,app:"Toko Aksesoris",exportedAt:new Date().toISOString(),inventory,salesHistory};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=`Backup_TokoAksesoris_${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function restoreData(event){
+ const file=event.target.files[0];if(!file)return;const reader=new FileReader();
+ reader.onload=function(e){try{const parsed=JSON.parse(e.target.result);if(Array.isArray(parsed.inventory)&&Array.isArray(parsed.salesHistory)){inventory=parsed.inventory;salesHistory=parsed.salesHistory;saveToStorage();renderTable();if(!document.getElementById('sectionSales').classList.contains('hidden')){populateSaleProductDropdown();renderSalesSection();}alert("Restore berhasil.");}else alert("Format backup tidak valid.");}catch(err){alert("File backup tidak dapat dibaca.");}document.getElementById('restoreInput').value='';};reader.readAsText(file);
+}
+function renderTable(){
+ const searchKeyword=(document.getElementById('searchInput').value||'').toLowerCase();tableBody.innerHTML='';
+ let totalItem=inventory.length,totalStock=0,totalModal=0,totalProfitPotensial=0;
+ const filteredData=inventory.filter(item=>(item.namaBarang||'').toLowerCase().includes(searchKeyword)||(item.kategori||'').toLowerCase().includes(searchKeyword)||(item.namaSupplier||'').toLowerCase().includes(searchKeyword));
+ if(!filteredData.length)tableBody.innerHTML=`<tr><td colspan="6" class="text-center p-6 text-slate-400">Belum ada data barang atau pencarian tidak ditemukan.</td></tr>`;
+ filteredData.forEach(item=>{
+  const realIndex=inventory.indexOf(item),stok=Number(item.stok)||0,modal=Number(item.modal)||0,harga=Number(item.hargaJual)||0,komisi=(harga*(Number(item.komisiMarketplace)||0))/100,iklan=Number(item.modalIklan)||0,bersih=harga-modal-komisi-iklan,margin=modal>0?((bersih/modal)*100).toFixed(1):0;
+  totalStock+=stok;totalModal+=modal*stok;totalProfitPotensial+=bersih*stok;
+  const row=document.createElement('tr');row.className="hover:bg-slate-50 transition";
+  row.innerHTML=`<td class="p-2.5"><span class="font-bold text-slate-800 block">${escapeHTML(item.namaBarang)}</span><span class="inline-block bg-indigo-50 text-indigo-600 text-[10px] font-semibold px-2 py-0.5 rounded mt-0.5">${escapeHTML(item.kategori)}</span></td>
+  <td class="p-2.5"><span class="font-medium text-slate-700 block">${escapeHTML(item.namaSupplier||'-')}</span><span class="text-slate-400 text-[10px] block">${escapeHTML(item.nomerSupplier||'')} ${item.alamatSupplier?'• '+escapeHTML(item.alamatSupplier):''}</span>${item.catatan?`<span class="mt-1 block text-[10px] bg-amber-50 border border-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md italic"><i class="fa-solid fa-note-sticky mr-1"></i>${escapeHTML(item.catatan)}</span>`:''}</td>
+  <td class="p-2.5 text-center"><span class="bg-slate-100 text-slate-800 font-bold px-2.5 py-1 rounded-md">${stok}</span><button onclick="bukaModalStok(${realIndex})" title="Tambah Stok" class="text-emerald-600 hover:text-emerald-800 ml-1"><i class="fa-solid fa-plus-circle"></i></button></td>
+  <td class="p-2.5 text-right"><span class="text-slate-500 block">Modal: ${formatRupiah(modal)}</span><span class="text-[10px] text-slate-400 block">Komisi (${Number(item.komisiMarketplace)||0}%): ${formatRupiah(komisi)}</span><span class="text-[10px] text-slate-400 block">Iklan: ${formatRupiah(iklan)}</span><span class="font-semibold text-slate-800 block">Jual: ${formatRupiah(harga)}</span></td>
+  <td class="p-2.5 text-right"><span class="font-bold text-emerald-600 block">${formatRupiah(bersih)}</span><span class="text-[10px] text-slate-400 block">+${margin}% dari modal</span></td>
+  <td class="p-2.5 text-center"><div class="flex items-center justify-center gap-1.5"><button onclick="editItem(${realIndex})" class="bg-amber-50 text-amber-600 hover:bg-amber-100 p-1.5 rounded" title="Edit"><i class="fa-solid fa-pen"></i></button><button onclick="deleteItem(${realIndex})" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded" title="Hapus"><i class="fa-solid fa-trash"></i></button></div></td>`;
+  tableBody.appendChild(row);
+ });
+ document.getElementById('statTotalItem').innerText=totalItem;document.getElementById('statTotalStock').innerText=totalStock;document.getElementById('statTotalModal').innerText=formatRupiah(totalModal);document.getElementById('statTotalProfit').innerText=formatRupiah(totalProfitPotensial);
+}
+function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+itemForm.addEventListener('submit',function(e){e.preventDefault();const editIndex=document.getElementById('editIndex').value,newItem={namaBarang:document.getElementById('namaBarang').value.trim(),kategori:document.getElementById('kategori').value,stok:Number(document.getElementById('stok').value),modal:Number(document.getElementById('modal').value),hargaJual:Number(document.getElementById('hargaJual').value),komisiMarketplace:Number(document.getElementById('komisiMarketplace').value)||0,modalIklan:Number(document.getElementById('modalIklan').value)||0,namaSupplier:document.getElementById('namaSupplier').value.trim(),alamatSupplier:document.getElementById('alamatSupplier').value.trim(),nomerSupplier:document.getElementById('nomerSupplier').value.trim(),catatan:document.getElementById('catatan').value.trim()};if(editIndex==="")inventory.push(newItem);else inventory[Number(editIndex)]=newItem;saveToStorage();renderTable();resetForm();});
+function editItem(index){const item=inventory[index];document.getElementById('editIndex').value=index;['namaBarang','kategori','stok','modal','hargaJual','komisiMarketplace','modalIklan','namaSupplier','alamatSupplier','nomerSupplier','catatan'].forEach(id=>document.getElementById(id).value=item[id]??'');document.getElementById('btnSimpan').innerText="Update Barang";document.getElementById('btnSimpan').className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm py-2 px-4 rounded-lg transition shadow-sm";window.scrollTo({top:0,behavior:'smooth'});}
+function deleteItem(index){if(confirm("Apakah Anda yakin ingin menghapus barang ini dari sistem?")){inventory.splice(index,1);saveToStorage();renderTable();}}
+function resetForm(){itemForm.reset();document.getElementById('editIndex').value="";document.getElementById('komisiMarketplace').value="0";document.getElementById('modalIklan').value="0";document.getElementById('catatan').value="";document.getElementById('btnSimpan').innerText="Simpan Barang";document.getElementById('btnSimpan').className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-2 px-4 rounded-lg transition shadow-sm";}
+function bukaModalStok(index){const item=inventory[index];document.getElementById('stokIndex').value=index;document.getElementById('stokModalInfo').innerText=`Menambahkan stok untuk: ${item.namaBarang} (Stok saat ini: ${item.stok})`;document.getElementById('jumlahTambahStok').value=1;document.getElementById('modalTambahStok').classList.remove('hidden');}
+function tutupModalStok(){document.getElementById('modalTambahStok').classList.add('hidden');}
+function prosesTambahStok(){const index=Number(document.getElementById('stokIndex').value),tambahan=Number(document.getElementById('jumlahTambahStok').value);if(tambahan>0){inventory[index].stok=(Number(inventory[index].stok)||0)+tambahan;saveToStorage();renderTable();tutupModalStok();}else alert("Jumlah penambahan harus lebih dari 0");}
+function populateSaleProductDropdown(){const select=document.getElementById('saleProductSelect');select.innerHTML='<option value="">-- Pilih Produk Tersedia --</option>';inventory.forEach((item,index)=>{if(Number(item.stok)>0){const opt=document.createElement('option');opt.value=index;opt.textContent=`${item.namaBarang} (Stok: ${item.stok} | ${formatRupiah(item.hargaJual)})`;select.appendChild(opt);}});document.getElementById('infoStokGudang').innerText='-';document.getElementById('infoHargaJual').innerText='-';document.getElementById('saleSubtotal').value='Rp 0';}
+function updateSaleProductInfo(){const i=document.getElementById('saleProductSelect').value;if(i===""){document.getElementById('infoStokGudang').innerText='-';document.getElementById('infoHargaJual').innerText='-';document.getElementById('saleSubtotal').value='Rp 0';return;}const item=inventory[Number(i)];document.getElementById('infoStokGudang').innerText=item.stok+" pcs";document.getElementById('infoHargaJual').innerText=formatRupiah(item.hargaJual);calculateSubtotal();}
+function calculateSubtotal(){const i=document.getElementById('saleProductSelect').value,qty=Number(document.getElementById('saleQty').value)||0;if(i===""){document.getElementById('saleSubtotal').value='Rp 0';return;}document.getElementById('saleSubtotal').value=formatRupiah(Number(inventory[Number(i)].hargaJual)*qty);}
+document.getElementById('saleForm').addEventListener('submit',function(e){e.preventDefault();const i=document.getElementById('saleProductSelect').value,qty=Number(document.getElementById('saleQty').value);if(i===""){alert("Silakan pilih produk terlebih dahulu!");return;}const item=inventory[Number(i)];if(qty<1||qty>Number(item.stok)){alert(`Stok tidak mencukupi! Stok saat ini: ${item.stok}`);return;}item.stok-=qty;const totalHarga=Number(item.hargaJual)*qty;salesHistory.unshift({id:Date.now(),namaBarang:item.namaBarang,qty,totalHarga,tanggal:new Date().toISOString()});saveToStorage();document.getElementById('saleForm').reset();document.getElementById('saleQty').value=1;populateSaleProductDropdown();renderSalesSection();alert(`Penjualan berhasil! Stok "${item.namaBarang}" berhasil dikurangi.`);});
+function renderSalesSection(){const now=new Date(),currentDay=now.toDateString(),currentMonth=now.getMonth(),currentYear=now.getFullYear();let h=0,w=0,m=0,y=0;const oneWeekAgo=new Date(now);oneWeekAgo.setDate(now.getDate()-7);salesHistory.forEach(s=>{const d=new Date(s.tanggal);if(d.toDateString()===currentDay)h+=Number(s.totalHarga)||0;if(d>=oneWeekAgo&&d<=now)w+=Number(s.totalHarga)||0;if(d.getMonth()===currentMonth&&d.getFullYear()===currentYear)m+=Number(s.totalHarga)||0;if(d.getFullYear()===currentYear)y+=Number(s.totalHarga)||0;});document.getElementById('omsetHarian').innerText=formatRupiah(h);document.getElementById('omsetMingguan').innerText=formatRupiah(w);document.getElementById('omsetBulanan').innerText=formatRupiah(m);document.getElementById('omsetTahunan').innerText=formatRupiah(y);salesTableBody.innerHTML='';if(!salesHistory.length){salesTableBody.innerHTML='<tr><td colspan="5" class="text-center p-6 text-slate-400">Belum ada riwayat transaksi penjualan.</td></tr>';return;}salesHistory.forEach((sale,index)=>{const tanggalFormatted=new Date(sale.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),row=document.createElement('tr');row.className="hover:bg-slate-50 transition";row.innerHTML=`<td class="p-2.5 text-slate-600"><i class="fa-regular fa-clock text-[10px] text-slate-400 mr-1"></i> ${tanggalFormatted}</td><td class="p-2.5 font-bold text-slate-800">${escapeHTML(sale.namaBarang)}</td><td class="p-2.5 text-center font-semibold text-slate-700">${sale.qty} pcs</td><td class="p-2.5 text-right font-bold text-emerald-600">${formatRupiah(sale.totalHarga)}</td><td class="p-2.5 text-center"><button onclick="deleteSale(${index})" class="bg-rose-50 text-rose-600 hover:bg-rose-100 p-1.5 rounded" title="Hapus Transaksi"><i class="fa-solid fa-trash"></i></button></td>`;salesTableBody.appendChild(row);});}
+function deleteSale(index){if(confirm("Apakah Anda ingin menghapus riwayat transaksi ini?")){salesHistory.splice(index,1);saveToStorage();renderSalesSection();}}
+function clearSalesHistory(){if(confirm("Yakin ingin mereset seluruh riwayat penjualan?")){salesHistory=[];saveToStorage();renderSalesSection();}}
+updateCalendarHeader();renderTable();
+
+/* PWA: daftarkan Service Worker */
+if('serviceWorker' in navigator){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('Service Worker:',err)));
+}
+</script>
+</body>
+</html>
